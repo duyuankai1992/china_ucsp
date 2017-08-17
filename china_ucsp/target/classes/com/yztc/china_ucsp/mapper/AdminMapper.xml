@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yztc.china_ucsp.mapper.AdminMapper">
+
+	<select id="findByAdminCode" parameterType="string" resultType="Admin">
+		SELECT * FROM admin_info WHERE admin_code=#{admin_code}
+	</select>
+	
+	<select id="findPrivilegeId" parameterType="int" resultType="int">
+		SELECT distinct rp.privilege_id 
+		FROM role_privilege rp join admin_role ar 
+		ON rp.role_id=ar.role_id 
+		WHERE admin_id=#{admin_id} 
+		ORDER BY privilege_id
+	</select>
+	
+	<select id="findAllPrivilege" resultType="privilege">
+		SELECT id,name FROM PRIVILEGE
+	</select>
+	
+	<!-- 动态条件分页  -->
+	<select id="findByPage" parameterType="adminPage" resultMap="adminResultMap">
+		SELECT * FROM admin_info WHERE id IN(
+		SELECT ar.admin_id FROM admin_role ar
+		JOIN role_info ri ON ar.role_id=ri.id
+		JOIN role_privilege rp ON ar.role_id=rp.role_id
+		<where>
+			<if test="privilegeId!=null and privilegeId!=-1">
+				AND rp.privilege_id=#{privilegeId}
+			</if>
+			<if test="roleName!=null and roleName.length()!=0">
+				AND ri.name LIKE '%${roleName}%'
+			</if>
+		</where>
+		)LIMIT #{begin},#{pageSize}
+	</select>
+	
+	<select id="findRoleByAdminId" parameterType="int" resultType="role">
+		SELECT id,name FROM role_info WHERE id IN(
+			SELECT role_id FROM admin_role WHERE admin_id=#{adminId}
+		)
+	</select>
+	
+	<resultMap type="admin" id="adminResultMap">
+		<id column="id" property="id"/>
+		<result column="admin_code" property="admin_code"/>
+		<collection property="listRole" ofType="role" select="findRoleByAdminId" column="id"></collection>
+	</resultMap>	
+	
+	<select id="findRecords" parameterType="adminPage" resultType="int">
+		SELECT COUNT(*) FROM admin_info WHERE id IN(
+		SELECT ar.admin_id FROM admin_role ar
+		JOIN role_info ri ON ar.role_id=ri.id
+		JOIN role_privilege rp ON ar.role_id=rp.role_id
+		<where>
+			<if test="privilegeId!=null and privilegeId!=-1">
+				AND rp.privilege_id=#{privilegeId}
+			</if>
+			<if test="roleName!=null and roleName.length() > 0">
+				AND ri.name LIKE '%${roleName}%'
+			</if>
+		</where>
+		)
+	</select>	
+	
+	
+	
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yztc.china_ucsp.mapper.RoleMapper">
+
+	<select id="findByPage" resultMap="roleResultMap"  parameterType="rolePage">
+		SELECT id,name FROM role_info LIMIT #{begin},#{pageSize}
+	</select>	
+	<select id="findRecords" resultType="int">
+		SELECT COUNT(*) FROM role_info
+	</select>
+	<!-- 根据ID 查询用户的权限 -->
+	<select id="findPrivilegeById" parameterType="int" resultType="privilege">	
+		SELECT id,name FROM privilege WHERE id IN(
+			SELECT PRIVILEGE_ID FROM role_privilege WHERE role_id=#{id}
+		)		
+	</select>
+	<!-- column="id"根据ID查   ofType="privilege"返回的类型  -->
+	<resultMap type="role" id="roleResultMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		<collection property="listPrivilege" select="findPrivilegeById" column="id" ofType="privilege"></collection>
+	</resultMap>
+	
+	<!--保存角色表中数据 获取该角色的ID 保存角色权限表中的ID  -->
+	<insert id="save" parameterType="role">
+	  <selectKey keyProperty="id"  resultType="int" order="AFTER">
+	    SELECT LAST_INSERT_ID()
+	  </selectKey>
+	  INSERT INTO role_info(id,name) VALUES(null,#{name})
+	</insert>
+	<!-- 保存角色权限表中的数据 -->
+	<insert id="saveRolePrivilege" parameterType="map">
+	  insert into role_privilege values (#{roleId},#{privilegeId})
+	</insert>
+	
+	
+	
+	
+	<!-- 更新角色 首先查询角色 再查询该角色的权限编号 -->
+	<select id="findById" parameterType="int" resultType="role">
+		SELECT id,name FROM role_info WHERE id=#{id}
+	</select>
+	<!-- 查询该角色的用户权限 -->
+	<select id="findPrivilegeIds" parameterType="int" resultType="int">
+		SELECT privilege_id FROM role_privilege WHERE role_id=#{roleId}
+	</select>
+	<!-- 修改角色名称 -->
+	<update id="update" parameterType="role">
+		UPDATE role_info SET name=#{name} WHERE id=#{id}
+	</update>
+	<!-- 修改角色的权限 首先删除原有权限 再添加用户所选权限   调用保存角色权限表功能-->
+	<delete id="deleteRolePrivilege" parameterType="int">
+		DELETE FROM role_privilege WHERE role_id=#{roleId}
+	</delete>	
+	
+	<!-- 删除角色 同时删除角色的权限即角色权限表数据 -->
+	<delete id="delete"  parameterType="int">
+		DELETE FROM role_info WHERE id=#{roleId}
+	</delete>
+</mapper>

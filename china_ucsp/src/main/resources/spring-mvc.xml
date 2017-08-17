@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd"> 
+		
+		<!-- 组件扫描 -->
+	<context:component-scan base-package="com.yztc.china_ucsp"/>	
+	
+	<!-- MVC 注解驱动 -->	
+	<mvc:annotation-driven/>	
+	<!-- 视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/"/>
+		<property name="suffix" value=".jsp"/> 
+	</bean>	
+	
+	<!-- 登录验证拦截器 -->
+	
+	<mvc:interceptors>		
+		<mvc:interceptor>
+			<mvc:mapping path="/*/*"/>
+			<mvc:exclude-mapping path="/login/*"/>
+			<bean class="com.yztc.china_ucsp.web.interceptor.LoginInterceptor"/>
+		</mvc:interceptor>	
+		<mvc:interceptor>
+		<mvc:mapping path="/*/*"/>
+			<bean class="com.yztc.china_ucsp.web.interceptor.CurrentModuleInterceptor"/>
+		
+		</mvc:interceptor>	 
+		 <mvc:interceptor>
+		 	<mvc:mapping path="/*/*"/>
+		 	<mvc:exclude-mapping path="/login/*"/>
+		 	<bean class="com.yztc.china_ucsp.web.interceptor.PrivilegeInterceptor"></bean>
+		 </mvc:interceptor>		 
+	</mvc:interceptors>
+	
+	
+	<!-- 连接池 -->
+	<!-- 读取属性文件 -->
+	<util:properties id="jdbcprop" location="classpath:db.properties"/>
+	
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="#{jdbcprop.driverName}"/>
+		<property name="url" value="#{jdbcprop.url}"/>
+		<property name="username" value="#{jdbcprop.user}"/>
+		<property name="password" value="#{jdbcprop.password}"/>
+	</bean>
+	
+	<!-- 定义sqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="typeAliasesPackage" value="com.yztc.china_ucsp.entity"/>
+		<property name="mapperLocations" value="classpath:com\yztc\china_ucsp\mapper\*.xml"/>
+	</bean>	
+	
+	<!-- 定义生成mapper接口代理实现的bean -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+		<property name="basePackage" value="com.yztc.china_ucsp.mapper"/>
+	</bean>	
+	
+	<!-- 声明式事务 myBatis采用spring jdbc的事物处理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	<!-- 打开事务注解开关 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>		
+</beans>

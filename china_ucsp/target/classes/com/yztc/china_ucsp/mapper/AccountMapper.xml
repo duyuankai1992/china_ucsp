@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yztc.china_ucsp.mapper.AccountMapper">
+
+
+
+<select id="findByPage" parameterType="accountpage" resultType="Account">
+SELECT * FROM Account LIMIT #{begin},#{pageSize}
+    </select>
+
+	<select id="findRecords" resultType="int">
+		SELECT COUNT(*) FROM Account
+	</select>
+
+
+<select id="save"  resultMap="accountResultMap" >
+	   insert into Account values(null,#{REAL_NAME},#{IDCARD_NO},#{LOGIN_NAME},'1',null,#{LAST_LOGIN_TIME})
+	</select>
+	<resultMap type="Account" id="accountResultMap">
+		<id column="id" property="id"/>
+		<result column="REAL_NAME" property="REAL_NAME"/>
+		<result column="IDCARD_NO" property="IDCARD_NO"/>
+		<result column="LOGIN_NAME" property="LOGIN_NAME"/>
+		<result column="STATUS" property="STATUS"/>
+		<result column="CREATIME" property="CREATIME"/>
+		<result column="LAST_LOGIN_TIME" property="LAST_LOGIN_TIME"/>
+	</resultMap>
+	
+	
+		<select id="delete" parameterType="int">
+	    delete from Account where id=#{id}
+	</select>
+	
+	<select id="findbyid" parameterType="int" resultType="Account">
+    SELECT * FROM Account WHERE id=#{id}
+</select>
+
+<!-- 根据id修改 -->
+<!-- 缺推荐人身份证，生日， 职业，性别 -->
+    <update id="update" parameterType="Account" >
+         update Account set RECOMMENDER_ID=#{RECOMMENDER_ID},REAL_NAME=#{REAL_NAME},
+         IDCARD_NO=#{IDCARD_NO},LOGIN_NAME=#{LOGIN_NAME},TELEPHONE=#{TELEPHONE},
+         EMAIL=#{EMAIL},MAILADDRESS=#{MAILADDRESS},ZIPCODE=#{ZIPCODE},
+         QQ=#{QQ}
+         WHERE id=#{id}
+    </update>
+	
+</mapper>

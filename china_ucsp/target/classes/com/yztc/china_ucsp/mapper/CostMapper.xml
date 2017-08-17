@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yztc.china_ucsp.mapper.CostMapper">
+<select id="resultMap"></select>
+<select id="findbyid" parameterType="int" resultType="Cost">
+    SELECT id,name,base_duration,base_cost,unit_cost FROM cost WHERE id=#{id}
+</select>
+
+<select id="findByPage" parameterType="costPage" resultType="Cost">
+SELECT * FROM cost LIMIT #{begin},#{pageSize}
+    </select>
+
+	<select id="findRecords" resultType="int">
+		SELECT COUNT(*) FROM cost
+	</select>
+	
+	<!-- 保存插入的记录数 -->
+	<select id="save"  resultMap="costResultMap" >
+	   insert into cost values(null,#{name},#{base_duration},#{base_cost},#{unit_cost},'1',#{descr},now(),null)
+	</select>
+	<resultMap type="cost" id="costResultMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name"/>
+		<result column="base_duration" property="base_duration"/>
+		<result column="base_cost" property="base_cost"/>
+		<result column="unit_cost" property="unit_cost"/>
+		<result column="status" property="status"/>
+		<result column="descr" property="descr"/>
+		<result column="creatime" property="creatime"/>
+		<result column="startime" property="startime"/>
+	</resultMap>
+	
+	<!-- 根据CostID删除 -->
+	<select id="delete" parameterType="int">
+	    delete from cost where id=#{costID}
+	</select>
+	
+	<!-- 根据CostID修改 -->
+    <update id="update" parameterType="Cost" >
+         update cost set name=#{name},base_duration=#{base_duration},base_cost=#{base_cost},unit_cost=#{unit_cost} WHERE id=#{id}
+    </update>
+    
+    
+    <!-- 根据基本费用来排序 -->
+    <select id="sortByBaseCost">
+          select * from cost order by base_cost asc
+          
+    </select>
+    <sql id=""></sql>
+    <!-- 根据时长来排序 -->
+    <select id="sortByBaseDuration">
+          select * from cost 
+         <include refid=""></include>
+    </select>
+</mapper>
